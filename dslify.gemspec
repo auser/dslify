@@ -8,17 +8,14 @@ Gem::Specification.new do |s|
   s.description = %q{Easily add DSL-like calls to any class}
   s.email = ["arilerner@mac.com"]
   s.extra_rdoc_files = ["History.txt", "Manifest.txt", "PostInstall.txt", "README.txt", "website/index.txt"]
-  s.files = ["History.txt", "Manifest.txt", "PostInstall.txt", "README.txt", "Rakefile", "config/hoe.rb", "config/requirements.rb", "lib/dslify.rb", "lib/dslify/core.rb", "lib/dslify/core/object.rb", "lib/dslify/core/string.rb", "lib/dslify/modules.rb", "lib/dslify/modules/configurable.rb", "lib/dslify/modules/method_missing.rb", "lib/dslify/version.rb", "script/console", "script/destroy", "script/generate", "script/txt2html", "setup.rb", "tasks/deployment.rake", "tasks/environment.rake", "tasks/website.rake", "test/test_dslify.rb", "test/test_helper.rb", "website/index.html", "website/index.txt", "website/javascripts/rounded_corners_lite.inc.js", "website/stylesheets/screen.css", "website/template.html.erb"]
+  s.files = ["History.txt", "Manifest.txt", "PostInstall.txt", "README.txt", "Rakefile", "config/hoe.rb", "config/requirements.rb", "dslify.gemspec", "lib/dslify.rb", "lib/dslify/core.rb", "lib/dslify/core/object.rb", "lib/dslify/core/string.rb", "lib/dslify/modules.rb", "lib/dslify/modules/configurable.rb", "lib/dslify/modules/method_missing_sugar.rb", "lib/dslify/version.rb", "script/console", "script/destroy", "script/generate", "script/txt2html", "setup.rb", "spec/configureable_spec.rb", "spec/method_missing_spec.rb", "spec/spec_helper.rb", "tasks/deployment.rake", "tasks/environment.rake", "tasks/website.rake", "test/test_dslify.rb", "test/test_helper.rb", "website/index.html", "website/index.txt", "website/javascripts/rounded_corners_lite.inc.js", "website/stylesheets/screen.css", "website/template.html.erb"]
   s.has_rdoc = true
   s.homepage = %q{http://dslify.rubyforge.org}
-  s.post_install_message = %q{
+  s.post_install_message = %q{Thanks for installing dslify!
+
 For more information on dslify, see http://dslify.rubyforge.org
 
-NOTE: Change this information in PostInstall.txt 
-You can also delete it if you don't want it.
-
-
-}
+Ari Lerner}
   s.rdoc_options = ["--main", "README.txt"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{dslify}
