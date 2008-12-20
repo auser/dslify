@@ -13,12 +13,7 @@ module Dslify
       if args.empty?
         options.has_key?(m) ? options[m] : nil
       else
-        options[m] = 
-        if (args.is_a?(Array) && args.size > 1)
-          args
-        else
-          args[0]
-        end
+        options[m] = (args.is_a?(Array) && args.size > 1) ? args : args[0]
       end
     end
     
