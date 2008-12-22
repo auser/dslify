@@ -17,4 +17,12 @@ describe "MethodMissingSugar" do
     @tc.__options[:valentine] = "will you be my"
     @tc.valentine.should == "will you be my"
   end
+  it "should accept a method called on the instance without an = sign" do
+    @tc.pop "goes the weasel"
+    @tc.pop.should == "goes the weasel"
+  end
+  it "should accept a method with the = sign which should set the variable" do
+    @tc.hop = "goes the bunny"
+    @tc.hop.should == "goes the bunny"
+  end
 end
