@@ -7,17 +7,17 @@ module Dslify
     end
     
     module InstanceMethods
-      def options(h={})
-        @options ||= self.class.default_options.merge(h)
+      def __options(h={})
+        @__options ||= self.class.default_options.merge(h)
       end
       
       def configure(h={})
-        options(h).merge!(h)
+        __options(h).merge!(h)
       end
       
       def reconfigure(h={})
-        @options = nil
-        options(h)
+        @__options = nil
+        __options(h)
       end
       
       def set_vars_from_options(opts={})

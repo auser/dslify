@@ -11,9 +11,9 @@ module Dslify
 
     def get_from_options(m, *args, &block)
       if args.empty?
-        options.has_key?(m) ? options[m] : nil
+        __options.has_key?(m) ? __options[m] : nil
       else
-        options[m] = (args.is_a?(Array) && args.size > 1) ? args : args[0]
+        __options[m] = (args.is_a?(Array) && args.size > 1) ? args : args[0]
       end
     end
     
