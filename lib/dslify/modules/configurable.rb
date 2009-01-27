@@ -23,6 +23,10 @@ module Dslify
       def set_vars_from_options(opts={})
         opts.each {|k,v| self.send k.to_sym, v } unless opts.empty?
       end
+      
+      def dsl_option_keys
+        __options.keys
+      end
     end
     
     def self.included(receiver)

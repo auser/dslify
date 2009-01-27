@@ -26,4 +26,8 @@ describe "configurable" do
     @tc.configure({:name => ["array", "ishere"]})
     @tc.name.should == ["array", "ishere"]
   end
+  it "should return a list of the configured keys" do
+    @tc.configure :name => "bob"
+    @tc.dsl_option_keys.should == [:name]
+  end
 end
