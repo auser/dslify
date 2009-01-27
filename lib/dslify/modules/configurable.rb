@@ -24,8 +24,11 @@ module Dslify
         opts.each {|k,v| self.send k.to_sym, v } unless opts.empty?
       end
       
-      def dsl_option_keys
+      def dsl_options_keys
         __options.keys
+      end
+      def dsl_options
+        __options
       end
     end
     
