@@ -20,21 +20,8 @@ end
 desc "Generate a new manifest and a new gem"
 task :build_local_gem => [:clean_tmp, :clean_pkg, :"manifest:refresh", :package]
 
-desc "Packge with timestamp"
-task :update_timestamp do
-  data = open("PostInstall.txt").read
-  str = "Updated at #{Time.now.strftime("%H:%M %D")}"
-  
-  if data.scan(/Updated at/).empty?
-    data = data ^ {:updated_at => str}    
-  else
-    data = data.gsub(/just installed PoolParty\!(.*)$/, "just installed PoolParty! (#{str})")
-  end
-  ::File.open("PostInstall.txt", "w+") {|f| f << data }
-end
-
 desc "Release to github"
-task :github_release => [:clean_tmp, :clean_pkg, :"manifest:refresh", :update_timestamp, :package] do
+task :github_release => [:clean_tmp, :clean_pkg, :"manifest:refresh", :package] do
   res = %x[rake debug_gem]
   res = res.split("\n")[1..-1].join("\n")
   ::File.open("#{GEM_NAME.downcase}.gemspec", "w+") do |f|

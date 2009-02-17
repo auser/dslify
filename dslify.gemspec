@@ -6,10 +6,11 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ari Lerner"]
-  s.date = %q{2009-01-27}
+  s.date = %q{2009-02-16}
   s.description = %q{Easily add DSL-like calls to any class}
   s.email = ["arilerner@mac.com"]
-  s.files = ["test/test_dslify.rb", "test/test_helper.rb"]
+  s.extra_rdoc_files = ["History.txt", "Manifest.txt", "PostInstall.txt", "README.txt", "website/index.txt"]
+  s.files = ["History.txt", "Manifest.txt", "PostInstall.txt", "README.txt", "Rakefile", "config/hoe.rb", "config/requirements.rb", "dslify.gemspec", "lib/dslify.rb", "lib/dslify/core.rb", "lib/dslify/core/object.rb", "lib/dslify/core/string.rb", "lib/dslify/modules.rb", "lib/dslify/modules/configurable.rb", "lib/dslify/modules/method_missing_sugar.rb", "lib/dslify/version.rb", "script/console", "script/destroy", "script/generate", "script/txt2html", "setup.rb", "spec/configureable_spec.rb", "spec/method_missing_spec.rb", "spec/spec_helper.rb", "tasks/deployment.rake", "tasks/environment.rake", "tasks/website.rake", "test/test_dslify.rb", "test/test_helper.rb", "website/index.html", "website/index.txt", "website/javascripts/rounded_corners_lite.inc.js", "website/stylesheets/screen.css", "website/template.html.erb"]
   s.has_rdoc = true
   s.homepage = %q{http://dslify.rubyforge.org}
   s.post_install_message = %q{Thanks for installing dslify!
