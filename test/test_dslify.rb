@@ -1,4 +1,5 @@
 require "rubygems"
+require "#{::File.dirname(__FILE__)}/../lib/dslify"
 require "matchy"
 require "context"
 
