@@ -31,5 +31,16 @@ class QuickieTest < Test::Unit::TestCase
       @q.a.should == "a"
       @q.b.should == "b"
     end
+    it "should set methods even when they are called with a block" do
+      @q.bobs Quickie.new do
+      end
+      @q.bobs.class.should == Quickie
+    end
+    it "should set the methods on the inner block" do
+      @q.bobs Quickie.new do
+        franks "franke"
+      end
+      @q.bobs.franks.should == "franke"
+    end
   end
 end
