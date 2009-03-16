@@ -10,14 +10,18 @@ class Object
   def method_missing(m,*a,&block)
     if block
       if args.empty?
-        ((a[0].class==self.class)?a[0].instance_eval(&block): super)
+        (a[0].class == self.class) ? a[0].instance_eval(&block) : super
       else
         inst = a[0]
         inst.instance_eval(&block)
         h[m] = inst
       end
     else
-      ((a.empty?)?h[m]:h[m.to_s.gsub(/\=/,"").to_sym]=(a.size>1?a:a[0]))
+      if a.empty?
+        h[m]
+      else
+        h[m.to_s.gsub(/\=/,"").to_sym] = (a.size > 1 ? a : a[0])
+      end
     end
   end
 end
