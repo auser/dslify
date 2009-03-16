@@ -4,6 +4,7 @@ require "matchy"
 require "context"
 
 class Quickie
+  include Dslify
 end
 
 class QuickieTest < Test::Unit::TestCase
@@ -24,7 +25,7 @@ class QuickieTest < Test::Unit::TestCase
     end
     it "should set these values in the h Hash on the object" do
       @q.movies "can be fun"
-      @q.h.keys.should == [:movies]
+      @q.dsl_options.keys.should == [:movies]
     end
     it "should set multiple keys with set_vars_from_options" do
       @q.set_vars_from_options({:a => "a", :b => "b"})
@@ -41,6 +42,46 @@ class QuickieTest < Test::Unit::TestCase
         franks "franke"
       end
       @q.bobs.franks.should == "franke"
+    end
+  end
+  context "with inheritance and classes" do
+    before do
+      class Pop
+        include Dslify
+        def initialize(h={})
+          dsl_options h
+        end
+        default_dsl_options :name => "pop"
+      end
+      class Foo < Pop
+        default_dsl_options :name=>'fooey'
+      end
+
+      class Bar < Pop
+        default_dsl_options :name=>'pangy', :taste => "spicy"
+      end
+      @pop = Pop.new
+      @poptart = Pop.new :name => "Cinnamon"
+      @foo = Foo.new
+      @bar = Bar.new
+    end
+    it "should take the default options set on the class" do
+      @pop.dsl_options[:name].should == "pop"
+    end
+    it "should allow us to add defaults on the instance by calling dsl_options" do
+      @poptart.name.should == "Cinnamon"
+    end
+    it "should take the default options on a second class that inherits from the base" do
+      @foo.name.should == "fooey"
+    end
+    it "should take the default options on a third inheriting class" do
+      @bar.name.should == "pangy"
+    end
+    it "should add a method called name set by the default_dsl_options" do
+      @bar.respond_to?(:taste).should == true
+    end
+    it "should not add a method not in the default_dsl_options" do
+      @bar.respond_to?(:boat).should == false
     end
   end
 end
