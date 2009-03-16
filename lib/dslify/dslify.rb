@@ -14,6 +14,7 @@ module Dslify
     def __h
       @__h||={}
     end
+    def default_dsl_options;self.class.default_dsl_options;end
     def dsl_options(h=nil)
       if h
         @__h = self.class.default_dsl_options.merge(h)

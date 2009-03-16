@@ -81,7 +81,11 @@ class QuickieTest < Test::Unit::TestCase
       @bar.respond_to?(:taste).should == true
     end
     it "should not add a method not in the default_dsl_options" do
-      @bar.respond_to?(:boat).should == false
+      @bar.respond_to?(:boat).should == false      
+    end
+    it "should return the original default options test" do
+      @bar.default_dsl_options[:taste].should == "spicy"
+      @bar.default_dsl_options[:name].should == "pangy"
     end
   end
 end
