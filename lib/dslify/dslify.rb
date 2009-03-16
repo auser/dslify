@@ -15,7 +15,7 @@ class Object
         inst = a[0]
         inst.instance_eval(&block)
         h[m] = inst
-      end      
+      end
     else
       ((a.empty?)?h[m]:h[m.to_s.gsub(/\=/,"").to_sym]=(a.size>1?a:a[0]))
     end
