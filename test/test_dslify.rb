@@ -51,14 +51,14 @@ class QuickieTest < Test::Unit::TestCase
         def initialize(h={})
           dsl_options h
         end
-        default_dsl_options :name => "pop"
+        default_options :name => "pop"
       end
       class Foo < Pop
-        default_dsl_options :name=>'fooey'
+        default_options :name=>'fooey'
       end
 
       class Bar < Pop
-        default_dsl_options :name=>'pangy', :taste => "spicy"
+        default_options :name=>'pangy', :taste => "spicy"
       end
       @pop = Pop.new
       @poptart = Pop.new :name => "Cinnamon"
