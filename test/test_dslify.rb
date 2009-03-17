@@ -77,10 +77,6 @@ class QuickieTest < Test::Unit::TestCase
     it "should take the default options on a third inheriting class" do
       @bar.name.should == "pangy"
     end
-    it "should add a method called name set by the default_dsl_options" do
-      @bar.taste "bob"
-      @bar.respond_to?(:taste).should == true
-    end
     it "should not add a method not in the default_dsl_options" do
       @bar.respond_to?(:boat).should == false      
     end
