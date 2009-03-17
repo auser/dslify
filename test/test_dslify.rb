@@ -78,6 +78,7 @@ class QuickieTest < Test::Unit::TestCase
       @bar.name.should == "pangy"
     end
     it "should add a method called name set by the default_dsl_options" do
+      @bar.taste "bob"
       @bar.respond_to?(:taste).should == true
     end
     it "should not add a method not in the default_dsl_options" do

@@ -2,10 +2,6 @@
 module Dslify
   module ClassMethods
     def default_options(hsh={})
-      hsh.each do |meth,_default_def|
-        class_eval "def #{meth}(n=nil); n ? #{meth}=n : @__h[:#{meth}] end"
-        class_eval "def #{meth}=(n); @__h[:#{meth}] = n; end"
-      end
       @default_dsl_options ||= hsh
     end
   end
@@ -25,6 +21,17 @@ module Dslify
     def set_vars_from_options(h={})
       h.each{|k,v|send k.to_sym, v } unless h.empty?
     end
+    def add_method(meth)
+      instance_eval <<-EOM 
+        def #{meth}(n=nil)
+          n ? (__h[:#{meth}] = n) : __h[:#{meth}]
+        end
+        def #{meth}=(n)
+          __h[:#{meth}] = n
+        end
+      EOM
+    end      
+    
     def method_missing(m,*a,&block)
       if block
         if a.empty?
@@ -32,13 +39,15 @@ module Dslify
         else
           inst = a[0]
           inst.instance_eval(&block)
+          add_method(m)
           __h[m] = inst
         end
       else
         if a.empty?
           __h[m]
         else
-          __h[m.to_s.gsub(/\=/,"").to_sym] = (a.size > 1 ? a : a[0])
+          add_method(m.to_s.gsub(/\=/,"").to_sym)
+          __h[m.to_s.gsub(/\=/,"").to_sym] = (a.size > 1 ? a : a[0])          
         end
       end
     end
