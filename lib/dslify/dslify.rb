@@ -1,7 +1,7 @@
 # Quick 1-file dsl accessor
 module Dslify
   module ClassMethods
-    def default_dsl_options(hsh={})
+    def default_options(hsh={})
       hsh.each do |meth,_default_def|
         class_eval "def #{meth}(n=nil); n ? #{meth}=n : @__h[:#{meth}] end"
         class_eval "def #{meth}=(n); @__h[:#{meth}] = n; end"
