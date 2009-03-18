@@ -3,7 +3,8 @@ require "#{::File.dirname(__FILE__)}/../lib/dslify"
 require "matchy"
 require "context"
 
-class Quickie < Dslify::Base
+class Quickie
+  include Dslify
 end
 
 class QuickieTest < Test::Unit::TestCase
@@ -45,7 +46,8 @@ class QuickieTest < Test::Unit::TestCase
   end
   context "with inheritance and classes" do
     before do
-      class Pop < Quickie
+      class Pop
+        include Dslify
         def initialize(h={})
           dsl_options h
         end
@@ -54,22 +56,13 @@ class QuickieTest < Test::Unit::TestCase
       class Foo < Pop
         default_options :name=>'fooey'
       end
+
       class Bar < Pop
         default_options :name=>'pangy', :taste => "spicy"
-      end      
-      class Dad < Pop
-        def method_missing(m,*a,&block)
-          if a.empty?
-            if options.has_key?(m) 
-              options[m]
-            else 
-              self.class.superclass.default_options[m]
-            end
-          else
-            super
-          end
-        end
       end
+      class Dad < Pop
+      end
+      
       @pop = Pop.new
       @poptart = Pop.new :name => "Cinnamon"
       @foo = Foo.new
