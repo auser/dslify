@@ -18,6 +18,7 @@ module Dslify
         __h(self.class.default_options)
       end
     end
+    alias :options :dsl_options
     def set_vars_from_options(h={})
       h.each{|k,v|send k.to_sym, v } unless h.empty?
     end
