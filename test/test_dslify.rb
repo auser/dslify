@@ -3,8 +3,7 @@ require "#{::File.dirname(__FILE__)}/../lib/dslify"
 require "matchy"
 require "context"
 
-class Quickie
-  include Dslify
+class Quickie < Dslify::Base
 end
 
 class QuickieTest < Test::Unit::TestCase
@@ -46,8 +45,7 @@ class QuickieTest < Test::Unit::TestCase
   end
   context "with inheritance and classes" do
     before do
-      class Pop
-        include Dslify
+      class Pop < Quickie
         def initialize(h={})
           dsl_options h
         end
@@ -56,9 +54,21 @@ class QuickieTest < Test::Unit::TestCase
       class Foo < Pop
         default_options :name=>'fooey'
       end
-
       class Bar < Pop
         default_options :name=>'pangy', :taste => "spicy"
+      end      
+      class Dad < Pop
+        def method_missing(m,*a,&block)
+          if a.empty?
+            if options.has_key?(m) 
+              options[m]
+            else 
+              self.class.superclass.default_options[m]
+            end
+          else
+            super
+          end
+        end
       end
       @pop = Pop.new
       @poptart = Pop.new :name => "Cinnamon"
@@ -83,6 +93,9 @@ class QuickieTest < Test::Unit::TestCase
     it "should return the original default options test" do
       @bar.default_dsl_options[:taste].should == "spicy"
       @bar.default_dsl_options[:name].should == "pangy"
+    end
+    it "should set the default options of the child to the superclass's if it doesn't exist" do
+      Dad.new.name.should == "pop"
     end
   end
 end
