@@ -40,12 +40,10 @@ module Dslify
         end
       else
         if a.empty?
-          # puts "dsl_options[m.to_sym]: #{dsl_options[m.to_sym] ? dsl_options[m.to_sym] : super} (#{self})"
-          # dsl_options[m.to_sym]
           if options.has_key?(m) 
             options[m]
           else 
-            self.class.superclass.respond_to?(:default_options) ? self.class.superclass.default_options[m] : super
+            super rescue self.class.superclass.respond_to?(:default_options) ? self.class.superclass.default_options[m] : raise
           end
         else
           clean_meth = m.to_s.gsub(/\=/,"").to_sym

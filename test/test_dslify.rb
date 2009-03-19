@@ -90,5 +90,10 @@ class QuickieTest < Test::Unit::TestCase
     it "should set the default options of the child to the superclass's if it doesn't exist" do
       Dad.new.name.should == "pop"
     end
+    it "should raise if the method isn't found on itself, the parent or in the rest of the method missing chain" do
+      lambda {
+        Class.new.sanitorium
+      }.should raise_error
+    end
   end
 end
