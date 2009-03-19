@@ -7,9 +7,6 @@ module Dslify
   end
   
   module InstanceMethods
-    def __h(hsh={})
-      @__h ||= hsh
-    end
     def default_dsl_options;self.class.default_options;end
     def dsl_options(hsh={})
       @dsl_options ||= default_dsl_options.merge(hsh)
