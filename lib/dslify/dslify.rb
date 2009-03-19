@@ -13,7 +13,7 @@ module Dslify
     end
     alias :options :dsl_options
     def set_vars_from_options(h={})
-      h.each{|k,v| dsl_options[k] = v } unless h.empty?
+      h.each{|k,v| send k.to_sym, v } unless h.empty?
     end
     def add_method(meth)
       # instance_eval <<-EOM        
