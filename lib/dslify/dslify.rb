@@ -12,8 +12,8 @@ module Dslify
       @dsl_options ||= default_dsl_options.merge(hsh)
     end
     alias :options :dsl_options
-    def set_vars_from_options(h={})
-      h.each{|k,v| send k.to_sym, v } unless h.empty?
+    def set_vars_from_options(h={}, contxt=self)
+      h.each{|k,v| contxt.send k.to_sym, v }
     end
     def add_method(meth)
       # instance_eval <<-EOM        
@@ -37,14 +37,14 @@ module Dslify
         end
       else
         if a.empty?
-          if options.has_key?(m) 
-            options[m]
-          else 
+          if dsl_options.has_key?(m) && !dsl_options[m].nil?
+            dsl_options[m]
+          else
             super rescue self.class.superclass.respond_to?(:default_options) ? self.class.superclass.default_options[m] : raise
           end
         else
           clean_meth = m.to_s.gsub(/\=/,"").to_sym
-          dsl_options[clean_meth] = (a.size > 1 ? a : a[0])          
+          dsl_options[clean_meth] = (a.size > 1 ? a : a[0])
         end
       end
     end
