@@ -37,7 +37,7 @@ module Dslify
         end
       else
         if a.empty?
-          if dsl_options.has_key?(m) && !dsl_options[m].nil?
+          if dsl_options.has_key?(m)
             dsl_options[m]
           else
             super rescue self.class.superclass.respond_to?(:default_options) ? self.class.superclass.default_options[m] : raise
