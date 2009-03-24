@@ -36,11 +36,17 @@ module Dslify
           dsl_options[m] = inst
         end
       else
-        if a.empty?
+        if a.empty?          
           if dsl_options.has_key?(m)
             dsl_options[m]
+          elsif m.to_s.index("?") == (m.to_s.length - 1)
+            dsl_options.has_key?(m) == true
           else
-            super rescue self.class.superclass.respond_to?(:default_options) ? self.class.superclass.default_options[m] : raise
+            if self.class.superclass.respond_to?(:default_options) && self.class.superclass.default_options.has_key?(m)
+              self.class.superclass.default_options[m]
+            else
+              super
+            end
           end
         else
           clean_meth = m.to_s.gsub(/\=/,"").to_sym

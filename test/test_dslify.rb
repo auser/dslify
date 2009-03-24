@@ -44,6 +44,7 @@ class QuickieTest < Test::Unit::TestCase
       @q.bobs.franks.should == "franke"
     end
   end
+  
   context "with inheritance and classes" do
     before do
       class Pop
@@ -53,13 +54,15 @@ class QuickieTest < Test::Unit::TestCase
         end
         default_options :name => "pop"
       end
+      
       class Foo < Pop
         default_options :name=>'fooey'
       end
-
+      
       class Bar < Pop
         default_options :name=>'pangy', :taste => "spicy"
       end
+      
       class Dad < Pop
       end
       
