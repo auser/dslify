@@ -43,6 +43,18 @@ class QuickieTest < Test::Unit::TestCase
       end
       @q.bobs.franks.should == "franke"
     end
+    it "should not blow up when called with a ? at the end of the method" do
+      @q.set_vars_from_options({:pete => "and pete"})
+      lambda{@q.pete?}.should_not raise_error
+    end
+    it "should return false if the method exists" do
+      @q.bones "is a tv show"
+      @q.bops?.should == false
+    end
+    it "should return true if the option is set" do
+      @q.bones "is a tv show"
+      @q.bones?.should == true
+    end
   end
   
   context "with inheritance and classes" do
