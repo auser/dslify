@@ -40,7 +40,11 @@ module Dslify
           if dsl_options.has_key?(m)
             dsl_options[m]
           elsif m.to_s.index("?") == (m.to_s.length - 1)
-            options.has_key?(m.to_s.gsub(/\?/, '').to_sym) == true
+            if options.has_key?(val = m.to_s.gsub(/\?/, '').to_sym)
+              options[val] != false
+            else
+              false
+            end
           else
             if self.class.superclass.respond_to?(:default_options) && self.class.superclass.default_options.has_key?(m)
               self.class.superclass.default_options[m]
