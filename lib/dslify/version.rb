@@ -4,7 +4,7 @@ module Dslify
     MINOR = 0
     TINY  = 4
 
-    STRING = [MAJOR, MINOR, TINY].join('.')
+    STRING = [MAJOR, MINOR, TINY].join('.') unless const_defined?("STRING")
     self
   end
 end
