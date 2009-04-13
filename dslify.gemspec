@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ari Lerner"]
-  s.date = %q{2009-03-16}
+  s.date = %q{2009-04-13}
   s.description = %q{Easily add DSL-like calls to any class}
   s.email = ["arilerner@mac.com"]
   s.extra_rdoc_files = ["History.txt", "Manifest.txt", "PostInstall.txt", "README.txt", "website/index.txt"]
