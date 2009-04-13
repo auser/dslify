@@ -48,7 +48,7 @@ module Dslify
           else
             if self.class.superclass.respond_to?(:default_options) && self.class.superclass.default_options.has_key?(m)
               self.class.superclass.default_options[m]
-            elsif respond_to? :parent
+            elsif ((respond_to? :parent) && (parent != self))
               parent.send m, *a, &block
             else
               super
