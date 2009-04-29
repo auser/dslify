@@ -57,6 +57,30 @@ class QuickieTest < Test::Unit::TestCase
     end
   end
   
+  context "default options" do
+    setup do
+      class Bang
+        include Dslify
+        default_options(
+          :says => 'vmrun'
+        )
+        def initialize(opts={}, &block)
+          instance_eval &block if block
+        end
+      end
+      @bang = Bang.new
+    end
+
+    should "overwrite the default dsl option in instance_eval" do
+      @bang.says.should == "vmrun"
+      @bang = Bang.new do
+        says "snake"
+      end
+      @bang.says.should == "snake"
+    end
+  end
+  
+  
   context "with inheritance and classes" do
     before do
       class Pop
