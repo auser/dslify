@@ -12,8 +12,15 @@ module Dslify
       @dsl_options ||= default_dsl_options.merge(hsh)
     end
     alias :options :dsl_options
-    def set_vars_from_options(h={}, contxt=self)
-      h.each{|k,v| contxt.send k.to_sym, v }
+    def set_vars_from_options(h, contxt=self)
+      h.each do |k,v| 
+        if contxt.respond_to?(k.to_sym)
+          contxt.send k.to_sym, v 
+        else
+          clean_meth = k.to_s.gsub(/\=/,"").to_sym
+          dsl_options[clean_meth] = v
+        end        
+      end
     end
     def add_method(meth)
       # instance_eval <<-EOM        
