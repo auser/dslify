@@ -67,13 +67,6 @@ module Dslify
           if dsl_options.has_key?(m) && o = (dsl_options[m].nil? ? nil : dsl_options[m])
             o
           elsif m.to_s.index("?") == (m.to_s.length - 1)
-            # if options.has_key?(val = m.to_s.gsub(/\?/, '').to_sym) && options[val]
-            #   options[val] != false
-            # elsif respond_to?(:parent) && parent.respond_to?(m)
-            #   parent.__send__ m
-            # else
-            #   false
-            # end
             exists_and_non_nil?(m.to_s.gsub(/\?/, '').to_sym)
           else            
             if self.class.superclass.respond_to?(:default_options) && self.class.superclass.default_options.has_key?(m)
