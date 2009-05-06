@@ -2,7 +2,10 @@
 module Dslify
   module ClassMethods
     def default_options(hsh={})
-      @default_dsl_options ||= hsh
+      (@default_dsl_options ||= {}).merge!(hsh)
+    end
+    def dsl_methods(*arr)
+      arr.each {|a| default_options.merge!({a => nil}) }
     end
   end
   
