@@ -174,7 +174,11 @@ module Dslify
       else
         if dsl_options.has_key?(m)
           add_method(m.to_sym)
-          self.send(m.to_sym, *a, &block)
+          if a.empty?
+            dsl_options[m.to_sym]
+          else
+            dsl_options[m.to_sym] = (a.size > 1) ? a : a[0]
+          end          
         else
           raise "You shouldn't be here"
         end
