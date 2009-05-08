@@ -1,5 +1,0 @@
-Thanks for installing dslify!
-
-For more information on dslify, see http://dslify.rubyforge.org
-
-Ari Lerner
