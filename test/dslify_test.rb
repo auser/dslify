@@ -29,7 +29,7 @@ class QuickieTest < Test::Unit::TestCase
       assert_equal @q.author, ["Ari Lerner"]
     end
     it "should set these values in the h Hash on the object" do
-      assert_raise RuntimeError do
+      assert_raise NoMethodError do
         @q.movies "can be fun"
       end
     end
@@ -94,10 +94,6 @@ class QuickieTest < Test::Unit::TestCase
     before do
       class Pop
         include Dslify
-        def initialize(h={})
-          dsl_options h
-          super
-        end
         default_options :name => "pop"
       end
       
@@ -119,22 +115,19 @@ class QuickieTest < Test::Unit::TestCase
         default_options(
           :global_default => "red_rum"
         )
-        
-        def self.global_method
-          "red_pop"
-        end
       end
       
-      @pop = Pop.new
-      @poptart = Pop.new :name => "Cinnamon"
+      @pop = Pop.new      
       @foo = Foo.new
       @bar = Bar.new
     end
     it "should take the default options set on the class" do
       assert_equal @pop.dsl_options[:name], "pop"
+      assert_equal @pop.name, "pop"
     end
     it "should allow us to add defaults on the instance by calling dsl_options" do      
       # QuickieTest::Pop.name == "Cinnamon"
+      @poptart = Pop.new :name => "Cinnamon"
       assert_equal @poptart.name, "Cinnamon"
     end
     it "should take the default options on a second class that inherits from the base" do
@@ -147,13 +140,13 @@ class QuickieTest < Test::Unit::TestCase
       assert_equal @bar.respond_to?(:boat), false      
     end
     it "should return the original default options test" do
-      assert_equal @bar.default_options[:taste], "spicy"
-      assert_equal @bar.default_options[:name], "pangy"
+      assert_equal @bar.dsl_options[:taste], "spicy"
+      assert_equal @bar.dsl_options[:name], "pangy"
     end
     it "should set the default options of the child to the superclass's if it doesn't exist" do
       # QuickieTest::Dad => QuickieTest::Pop
       d = Dad.new
-      assert_equal d.name, "pop"
+      assert_equal "pop", d.name
       d.name "Frankenstein"
       assert_equal d.name, "Frankenstein"
     end
@@ -174,24 +167,20 @@ class QuickieTest < Test::Unit::TestCase
       # QuickieTest::Grandad => QuickieTest::Dad => QuickieTest::Defaults => QuickieTest::Dad => QuickieTest::Pop
       assert_equal g.global_default, "red_rum"
     end
-    it "should be able to add a class as a forwarder and get a method" do
-      g = Grandad.new
-      assert_equal g.global_method, "red_pop"
-    end
-    it "should be able to take a method that responds to an object" do
-      class Tanks
-        include Dslify
-        forwards_to :parent
-        def initialize(obj)
-          @pop = obj
-        end
-        def parent          
-          @pop
-        end
-      end
-      t = Tanks.new(@bar)
-      # QuickieTest::Tanks => Object => #<QuickieTest::Bar>
-      assert_equal t.taste, @bar.taste
-    end
+    # it "should be able to take a method that responds to an object" do
+    #   class Tanks
+    #     include Dslify
+    #     forwards_to :parent
+    #     def initialize(obj)
+    #       @parent = obj
+    #     end
+    #     def parent          
+    #       @parent
+    #     end
+    #   end
+    #   t = Tanks.new(@bar)
+    #   # QuickieTest::Tanks => Object => #<QuickieTest::Bar>
+    #   assert_equal t.taste, @bar.taste
+    # end
   end
 end

@@ -28,7 +28,11 @@
     forwards_to :parent
   end
 =end
-require "forwardable"
+class Object
+  def self.superclasses
+    superclass == Object ? [] : [superclass, superclass.superclasses].flatten
+  end
+end
 
 module Dslify
   module ClassMethods
@@ -43,90 +47,66 @@ module Dslify
     # Forwarders array. If the method cannot be found on self, then check the forwarders
     # to see if any of them respond to the method
     # Starts with self.class and self.class.superclass
-    def forwarders
-      @forwarders ||= [self, superclass]
+    def dsl_forwarders
+      @dsl_forwarders ||= [default_options, superclasses].flatten
     end
     # Add forwarders
     def forwards_to(*arr)
-      arr.each {|a| forwarders << a }
+      arr.each {|a| dsl_forwarders.push a unless dsl_forwarders.include?(a) }
     end
-    def do_not_forward_my_whole_chain(t=false)
-      @do_not_forward_my_whole_chain ||= t
+    
+    def has_key?(m)
+      return true if default_options.has_key?(m)
+      dsl_forwarders.each do |fwd|
+        return true if fwd.has_key?(m)
+      end
+      false
     end
-    # Can the class handle the method?
-    def can_i_handle_the_method?(m)
-      (respond_to?(m.to_sym) || default_options.has_key?(m.to_sym)) ? true : false
-    end
-    # Handle the method on self. Either send the method to self if it is
-    # a method or fetch it from the dsl_options if it's in the dsl_options
-    def handle_the_method(m, *a, &block)      
-      m = m.to_sym unless m.is_a?(Symbol)
-      if respond_to?(m)
-        self.send(m.to_sym, *a, &block)
-      elsif default_options.has_key?(m)
-        self.send(m, *a, &block)
+    
+    def fetch(m)
+      if default_options.has_key?(m)
+        default_options[m]
       else
-        nil
+        dsl_forwarders.each do |fwd|
+          if fwd.has_key?(m)
+            o = fwd.fetch(m)
+            return o
+          end
+        end
       end
     end
+    
   end
   
   module InstanceMethods
-    def initialize(o={}, *a)
-      add_chain_of_ancestry unless self.class.do_not_forward_my_whole_chain
-      
-      forwarders.each do |fwd|
-        @dsl_options = (fwd.default_options).merge(dsl_options) if fwd.respond_to?(:default_options)
-      end      
-      dsl_options.each {|k,v| set(k,v)}
+    def initialize(hsh={})
+      dsl_options.merge!(hsh)
+      dsl_options.each do |k,v| 
+        add_method(k.to_sym)
+        store(k,v)
+      end
     end
-    def default_options
-      @default_options ||= self.class.default_options
+    def set_vars_from_options(hsh={})
+      puts "set_vars_from_options will be deprecated. Fix your code, foo"
+      hsh.each {|k,v| dsl_option(k,v) }
     end
-    def dsl_options(hsh={})
-      (@dsl_options ||= default_options.merge(hsh)).merge!(hsh)
+    def dsl_option(k,v=nil)
+      add_method(k)
+      dsl_options[k] = v
+    end
+    def dsl_options
+      @dsl_options ||= self.class.default_options
     end
     def dsl_methods(*arr)
       ((@dsl_methods ||= self.class.dsl_methods) << arr).flatten
     end
-    def _forwarders
-      @forwarders ||= self.class.forwarders
+    def dsl_forwarders
+      @dsl_forwarders ||= self.class.dsl_forwarders
     end
-    def forwarders
-      _forwarders.map {|fwd| fwd.is_a?(Symbol) ? self.send(fwd) : fwd}
+    def has_key?(m)
+      dsl_options.has_key?(m)
     end
-    # Force set a dsl_option
-    def dsl_option(k,v=nil)
-      dsl_options[k.to_sym] = v
-      add_method(k.to_sym)
-    end
-    alias :options :dsl_options
     
-    # Set all the variables from the options
-    def set_vars_from_options(h, contxt=self)
-      h.each {|k,v| dsl_option(k,v)}
-    end
-    def add_chain_of_ancestry
-      ancestry = self.class.ancestors[1..-1]        
-      ancestry.each do |a|
-        break if a.to_s =~ /Dslify/
-        _forwarders << a
-      end
-    end
-    def add_method(meth)
-      instance_eval <<-EOM
-        def #{meth}(n=nil)
-          n ? (dsl_options[:#{meth}] = n) : dsl_options[:#{meth}]
-        end
-        def #{meth}=(n)
-          dsl_options[:#{meth}] = n
-        end
-        def #{meth}?
-          can_i_reach?(:#{meth})
-        end
-      EOM
-    end
-
     # The power
     def method_missing(m,*a,&block)
       if block
@@ -152,100 +132,77 @@ module Dslify
         else
           clean_meth = m.to_s.gsub(/\=/,"").to_sym
           val = a.size > 1 ? a : a[0]
-          set(clean_meth, val, &block)
+          store(clean_meth, val, &block)
         end
       end
     end
     
-    # Can I handle the method passed to me? (method == variable)
-    # If I respond to the method, then of course I'll handle the method
-    # If the method is not in my method lookup table, then
-    # check to see if the method is a dsl_method in the dsl_options. If either
-    # are true, then I can handle the method, otherwise, I cannot
-    def can_i_handle_the_method?(m)
-      (respond_to?(m.to_sym) || dsl_options.has_key?(m.to_sym)) ? true : false
-    end
-    # Handle the method on self. Either send the method to self if it is
-    # a method or fetch it from the dsl_options if it's in the dsl_options
-    def handle_the_method(m, *a, &block)      
-      m = m.to_sym unless m.is_a?(Symbol)
-      if self.methods.include?(m)        
-        self.send(m, *a, &block)
-      else
-        if dsl_options.has_key?(m)
-          add_method(m.to_sym)
-          if a.empty?
-            dsl_options[m.to_sym]
+    def add_method(meth)
+      instance_eval <<-EOM
+        def #{meth}(n=nil)
+          if n
+            dsl_options[:#{meth}] = n
           else
-            dsl_options[m.to_sym] = (a.size > 1) ? a : a[0]
-          end          
-        else
-          raise "You shouldn't be here"
+            o = dsl_options[:#{meth}]            
+            o = instance_eval(&o) if o.is_a?(Proc)
+            o
+          end
         end
-      end
+        def #{meth}=(n)
+          dsl_options[:#{meth}] = n
+        end
+        def #{meth}?
+          ![nil, false].include?(#{meth})
+        end
+      EOM
     end
     
-    # Check on the forwarders to see if they can handle the methods
-    def can_my_chain_handle_the_method?(m)
-      forwarders.each do |fwd|
-        return true if fwd.respond_to?(:can_i_handle_the_method?) && fwd.can_i_handle_the_method?(m)
-        return true if fwd.respond_to?(m.to_sym)
-      end
-      false
-    end
-    # Go through the list of forwarders and see if they can handle the method
-    # If they can, then let's setup a forwardable delegation so they don't have 
-    # to run through this maze again
-    def let_my_forwarders_handle_the_method(m)
-      forwarders.each do |fwd|
-        if fwd.respond_to?(:can_i_handle_the_method?) && fwd.can_i_handle_the_method?(m)
-          self.class.class_eval { def_delegator fwd, m.to_sym }
-          return fwd.handle_the_method(m) if fwd.respond_to?(:handle_the_method)
-        elsif fwd.respond_to?(m)
-          self.class.class_eval { def_delegator fwd, m.to_sym }
-          return fwd.send(m.to_sym)
-        end
-      end
-      nil
-    end
     # Get the value from the dsl_options or the forwarders
     def fetch(m)
-      if can_i_handle_the_method?(m)        
-        handle_the_method(m)
-      elsif can_my_chain_handle_the_method?(m)
-        let_my_forwarders_handle_the_method(m)
+      if respond_to?(:dsl_options) && dsl_options.has_key?(m)
+        add_method(m)
+        return self.send m
       else
-        raise "The method :#{m} cannot be found on #{self}"
+        dsl_forwarders.each do |fwd|
+          fwd = self.send(fwd) if fwd.is_a?(Symbol)  
+          if fwd.has_key?(m)
+            o = fwd.fetch(m)              
+            add_method(m)
+            o = o.call if o.is_a?(Proc)
+            return o
+          end
+        end
       end
+      raise NoMethodError
     end
+
     # Set the value
     # If I can handle the method, then handle the method here first
     # otherwise, check to see if the chain can handle the method.
     # If the chain can handle the method, then create the method on
     # self and get the output
-    def set(m, *a, &block)
-      m = m.to_sym
-      val = a.size > 1 ? a : a[0]
-      if can_i_handle_the_method?(m)
-        handle_the_method(m, val, &block)
-      elsif can_my_chain_handle_the_method?(m)
-        o = let_my_forwarders_handle_the_method(m)
-        add_method(m)
-        self.send m, val, &block
-        o
+    def store(m, *a, &block)
+      if dsl_options.has_key?(m)
+        m = m.to_sym
+        val = a.size > 1 ? a : a[0]
+        dsl_options[m] = val
       else
-        raise "Cannot set the method #{m}(#{a}) on #{self}"
-      end      
+        raise NoMethodError
+      end
     end
     
     def can_i_reach?(m)
-      can_i_handle_the_method?(m) || can_my_chain_handle_the_method?(m)
+      begin
+        fetch(m.to_s.gsub(/\?/, '').to_sym)
+        true
+      rescue Exception => e
+        false
+      end
     end
     
   end
   
   def self.included(receiver)
-    receiver.extend         Forwardable
     receiver.extend         ClassMethods
     receiver.send :include, InstanceMethods
   end
