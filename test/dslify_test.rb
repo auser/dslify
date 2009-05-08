@@ -178,5 +178,20 @@ class QuickieTest < Test::Unit::TestCase
       g = Grandad.new
       assert_equal g.global_method, "red_pop"
     end
+    it "should be able to take a method that responds to an object" do
+      class Tanks
+        include Dslify
+        forwards_to :parent
+        def initialize(obj)
+          @pop = obj
+        end
+        def parent          
+          @pop
+        end
+      end
+      t = Tanks.new(@bar)
+      # QuickieTest::Tanks => Object => #<QuickieTest::Bar>
+      assert_equal t.taste, @bar.taste
+    end
   end
 end

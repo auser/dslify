@@ -20,7 +20,7 @@
       default_options :award => "Tony Award"
     end
   
-  Finally, if your tree of available accessors runs higher and longer than
+  If your tree of available accessors runs higher and longer than
   just 1 file, for instance, if you use Parenting, you can set forwarders to 
   forward the query up the chain
   
@@ -89,8 +89,11 @@ module Dslify
     def dsl_methods(*arr)
       ((@dsl_methods ||= self.class.dsl_methods) << arr).flatten
     end
-    def forwarders
+    def _forwarders
       @forwarders ||= self.class.forwarders
+    end
+    def forwarders
+      _forwarders.map {|fwd| fwd.is_a?(Symbol) ? self.send(fwd) : fwd}
     end
     # Force set a dsl_option
     def dsl_option(k,v=nil)
@@ -107,7 +110,7 @@ module Dslify
       ancestry = self.class.ancestors[1..-1]        
       ancestry.each do |a|
         break if a.to_s =~ /Dslify/
-        forwarders << a
+        _forwarders << a
       end
     end
     def add_method(meth)
