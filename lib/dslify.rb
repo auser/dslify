@@ -32,21 +32,28 @@ require "forwardable"
 
 module Dslify
   module ClassMethods
+    # Allow default options
     def default_options(hsh={})
       (@default_options ||= {}).merge!(hsh)
     end
+    # For every method, add a default of nil to the default_options hash
     def dsl_methods(*arr)
       arr.each {|a| default_options({a => nil}) }
     end
+    # Forwarders array. If the method cannot be found on self, then check the forwarders
+    # to see if any of them respond to the method
+    # Starts with self.class and self.class.superclass
     def forwarders
       @forwarders ||= [self, superclass]
     end
+    # Add forwarders
     def forwards_to(*arr)
       arr.each {|a| forwarders << a }
     end
-    def forward_my_whole_chain(t=false)
-      @forward_my_whole_chain ||= t
+    def do_not_forward_my_whole_chain(t=false)
+      @do_not_forward_my_whole_chain ||= t
     end
+    # Can the class handle the method?
     def can_i_handle_the_method?(m)
       (respond_to?(m.to_sym) || default_options.has_key?(m.to_sym)) ? true : false
     end
@@ -65,8 +72,8 @@ module Dslify
   end
   
   module InstanceMethods
-    def initialize(o={}, *a)      
-      add_chain_of_ancestry if self.class.forward_my_whole_chain
+    def initialize(o={}, *a)
+      add_chain_of_ancestry unless self.class.do_not_forward_my_whole_chain
       
       forwarders.each do |fwd|
         @dsl_options = (fwd.default_options).merge(dsl_options) if fwd.respond_to?(:default_options)

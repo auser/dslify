@@ -113,7 +113,6 @@ class QuickieTest < Test::Unit::TestCase
       end
       
       class Grandad < Dad
-        forward_my_whole_chain true
       end
       
       class Defaults < Pop
@@ -134,7 +133,8 @@ class QuickieTest < Test::Unit::TestCase
     it "should take the default options set on the class" do
       assert_equal @pop.dsl_options[:name], "pop"
     end
-    it "should allow us to add defaults on the instance by calling dsl_options" do
+    it "should allow us to add defaults on the instance by calling dsl_options" do      
+      # QuickieTest::Pop.name == "Cinnamon"
       assert_equal @poptart.name, "Cinnamon"
     end
     it "should take the default options on a second class that inherits from the base" do
@@ -151,8 +151,11 @@ class QuickieTest < Test::Unit::TestCase
       assert_equal @bar.default_options[:name], "pangy"
     end
     it "should set the default options of the child to the superclass's if it doesn't exist" do
+      # QuickieTest::Dad => QuickieTest::Pop
       d = Dad.new
-      assert d.name, "pop"
+      assert_equal d.name, "pop"
+      d.name "Frankenstein"
+      assert_equal d.name, "Frankenstein"
     end
     it "should raise if the method isn't found on itself, the parent or in the rest of the method missing chain" do
       assert_raise NoMethodError do
@@ -160,6 +163,7 @@ class QuickieTest < Test::Unit::TestCase
       end
     end
     it "should be able to reach the grandparent through the chain of dsify-ed classes" do
+      # QuickieTest::Grandad => QuickieTest::Dad => QuickieTest::Pop
       assert Grandad.new.name, "pop"
     end
     it "should be able to add a class as a forwarder" do
@@ -167,6 +171,7 @@ class QuickieTest < Test::Unit::TestCase
         forwards_to Defaults
       end
       g = Grandad.new
+      # QuickieTest::Grandad => QuickieTest::Dad => QuickieTest::Defaults => QuickieTest::Dad => QuickieTest::Pop
       assert_equal g.global_default, "red_rum"
     end
     it "should be able to add a class as a forwarder and get a method" do
