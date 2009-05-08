@@ -80,6 +80,7 @@ module Dslify
   
   module InstanceMethods
     def initialize(hsh={})
+      puts "DSLIFY INIT"
       dsl_options.merge!(hsh)
       dsl_options.each do |k,v| 
         add_method(k.to_sym)
@@ -138,7 +139,7 @@ module Dslify
     end
     
     def add_method(meth)
-      instance_eval <<-EOM
+      self.class.class_eval <<-EOM
         def #{meth}(n=nil)
           if n
             dsl_options[:#{meth}] = n
@@ -161,7 +162,7 @@ module Dslify
     def fetch(m)
       if respond_to?(:dsl_options) && dsl_options.has_key?(m)
         add_method(m)
-        return self.send m
+        return self.send(m)
       else
         dsl_forwarders.each do |fwd|
           fwd = self.send(fwd) if fwd.is_a?(Symbol)  
