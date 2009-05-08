@@ -1,7 +1,4 @@
-require "rubygems"
-require "#{::File.dirname(__FILE__)}/../lib/dslify"
-require "matchy"
-require "context"
+require "#{File.dirname(__FILE__)}/test_helper"
 
 class Quickie
   include Dslify
@@ -19,47 +16,53 @@ class QuickieTest < Test::Unit::TestCase
       @q = Quickie.new
     end
     it "should be able to set methods on self" do
-      lambda{@q.bank "bobs"}.should_not raise_error
+      assert_nothing_raised do
+        @q.bank "bobs"
+      end
     end
     it "should set and then retrieve the same value back" do
       @q.snobs "are mean"
-      @q.snobs.should == "are mean"
+      assert_equal @q.snobs, "are mean"
     end
     it "should set and retrieve values back with an = sign" do
       @q.author = ["Ari Lerner"]
-      @q.author.should == ["Ari Lerner"]
+      assert_equal @q.author, ["Ari Lerner"]
     end
     it "should set these values in the h Hash on the object" do
-      lambda{@q.movies "can be fun"}.should raise_error
+      assert_raise RuntimeError do
+        @q.movies "can be fun"
+      end
     end
     it "should set multiple keys with set_vars_from_options" do
       @q.dsl_methods :a, :b
       @q.set_vars_from_options({:a => "a", :b => "b"})
-      @q.a.should == "a"
-      @q.b.should == "b"
+      assert_equal @q.a, "a"
+      assert_equal @q.b, "b"
     end
     it "should set methods even when they are called with a block" do
       @q.bobs Quickie.new do
       end
-      @q.bobs.class.should == Quickie
+      assert_equal @q.bobs.class, Quickie
     end
     it "should set the methods on the inner block" do
       @q.bobs Quickie.new do
         dsl_option :franks
         franks "franke"
       end
-      @q.bobs.franks.should == "franke"
+      assert_equal @q.bobs.franks, "franke"
     end
     it "should not blow up when called with a ? at the end of the method" do
       @q.set_vars_from_options({:pete => "and pete"})
-      lambda{@q.pete?}.should_not raise_error
+      assert_nothing_raised do
+        @q.pete?
+      end
     end
     it "should return false if the method exists" do
-      @q.bobs?.should == false
+      assert_equal @q.bobs?, false
     end
     it "should return true if the option is set" do
       @q.bank "is a tv show"
-      @q.bank?.should == true
+      assert_equal @q.bank?, true
     end
   end
   
@@ -78,11 +81,11 @@ class QuickieTest < Test::Unit::TestCase
     end
 
     should "overwrite the default dsl option in instance_eval" do
-      @bang.says.should == "vmrun"
+      assert_equal @bang.says, "vmrun"
       @bang = Bang.new do
         says "snake"
       end
-      @bang.says.should == "snake"
+      assert_equal @bang.says, "snake"
     end
   end
   
@@ -129,46 +132,46 @@ class QuickieTest < Test::Unit::TestCase
       @bar = Bar.new
     end
     it "should take the default options set on the class" do
-      @pop.dsl_options[:name].should == "pop"
+      assert_equal @pop.dsl_options[:name], "pop"
     end
     it "should allow us to add defaults on the instance by calling dsl_options" do
-      @poptart.name.should == "Cinnamon"
+      assert_equal @poptart.name, "Cinnamon"
     end
     it "should take the default options on a second class that inherits from the base" do
-      @foo.name.should == "fooey"
+      assert_equal @foo.name, "fooey"
     end
     it "should take the default options on a third inheriting class" do
-      @bar.name.should == "pangy"
+      assert_equal @bar.name, "pangy"
     end
     it "should not add a method not in the default_options" do
-      @bar.respond_to?(:boat).should == false      
+      assert_equal @bar.respond_to?(:boat), false      
     end
     it "should return the original default options test" do
-      @bar.default_options[:taste].should == "spicy"
-      @bar.default_options[:name].should == "pangy"
+      assert_equal @bar.default_options[:taste], "spicy"
+      assert_equal @bar.default_options[:name], "pangy"
     end
     it "should set the default options of the child to the superclass's if it doesn't exist" do
       d = Dad.new
-      d.name.should == "pop"
+      assert d.name, "pop"
     end
     it "should raise if the method isn't found on itself, the parent or in the rest of the method missing chain" do
-      lambda {
+      assert_raise NoMethodError do
         Class.new.sanitorium
-      }.should raise_error
+      end
     end
     it "should be able to reach the grandparent through the chain of dsify-ed classes" do
-      Grandad.new.name.should == "pop"
+      assert Grandad.new.name, "pop"
     end
     it "should be able to add a class as a forwarder" do
       class Grandad
         forwards_to Defaults
       end
       g = Grandad.new
-      g.global_default.should == "red_rum"
+      assert_equal g.global_default, "red_rum"
     end
     it "should be able to add a class as a forwarder and get a method" do
       g = Grandad.new
-      g.global_method.should == "red_pop"
+      assert_equal g.global_method, "red_pop"
     end
   end
 end
