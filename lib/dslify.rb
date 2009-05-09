@@ -28,6 +28,8 @@
     forwards_to :parent
   end
 =end
+require "forwardable"
+
 class Object
   def self.superclasses
     superclass == Object ? [] : [superclass, superclass.superclasses].flatten
@@ -39,64 +41,53 @@ module Dslify
     # Allow default options
     def default_options(hsh={})
       (@default_options ||= {}).merge!(hsh)
+      @default_options.each {|k,v| create_method_on(self, k) }
     end
     # For every method, add a default of nil to the default_options hash
     def dsl_methods(*arr)
       arr.each {|a| default_options({a => nil}) }
     end
-    # Forwarders array. If the method cannot be found on self, then check the forwarders
-    # to see if any of them respond to the method
-    # Starts with self.class and self.class.superclass
+    def forwards_to(consts=[])
+      (dsl_forwarders << consts).flatten
+    end
     def dsl_forwarders
-      @dsl_forwarders ||= [default_options, superclasses].flatten
+      @dsl_forwarders ||= []
     end
-    # Add forwarders
-    def forwards_to(*arr)
-      arr.each {|a| dsl_forwarders.push a unless dsl_forwarders.include?(a) }
+    def dsl_option(k,v=nil)
+      create_method_on(self, k)
+      default_options.merge!({k => v})
     end
-    
-    def has_key?(m)
-      return true if default_options.has_key?(m)
-      dsl_forwarders.each do |fwd|
-        return true if fwd.has_key?(m)
-      end
-      false
+    def inherited(receiver)
+      default_options.each{|k,v| create_method_on(receiver, k)}
+      receiver.default_options.merge!(default_options)
+      (receiver.dsl_forwarders << dsl_forwarders).flatten!
     end
-    
-    def fetch(m)
-      if default_options.has_key?(m)
-        default_options[m]
+    def create_method_on(on, k)
+      str = %{
+        def #{k}(n=nil);n.nil? ? __dsl_fetch(:#{k}) : dsl_options[:#{k}] = n;end
+        def #{k}=(n=nil);n.nil? ? __dsl_fetch(:#{k}) : dsl_options[:#{k}] = n;end
+        def self.#{k}(n=nil);n.nil? ? __dsl_fetch(:#{k}) : default_options[:#{k}] = n;end
+        def #{k}?;dsl_options.has_key?(:#{k});end
+        }
+      on.class_eval str
+    end
+    def __dsl_fetch(m)
+      o = default_options[m]
+      case o
+      when Proc
+        instance_eval &o
       else
-        dsl_forwarders.each do |fwd|
-          if fwd.has_key?(m)
-            o = fwd.fetch(m)
-            return o
-          end
-        end
+        o
       end
     end
-    
   end
   
   module InstanceMethods
-    def initialize(hsh={})
-      puts "DSLIFY INIT"
-      dsl_options.merge!(hsh)
-      dsl_options.each do |k,v| 
-        add_method(k.to_sym)
-        store(k,v)
-      end
-    end
-    def set_vars_from_options(hsh={})
-      puts "set_vars_from_options will be deprecated. Fix your code, foo"
-      hsh.each {|k,v| dsl_option(k,v) }
-    end
-    def dsl_option(k,v=nil)
-      add_method(k)
-      dsl_options[k] = v
-    end
     def dsl_options
       @dsl_options ||= self.class.default_options
+    end
+    def dsl_option(k,v=nil)
+      self.class.dsl_option(k,v)
     end
     def dsl_methods(*arr)
       ((@dsl_methods ||= self.class.dsl_methods) << arr).flatten
@@ -104,106 +95,35 @@ module Dslify
     def dsl_forwarders
       @dsl_forwarders ||= self.class.dsl_forwarders
     end
-    def has_key?(m)
-      dsl_options.has_key?(m)
-    end
-    
-    # The power
-    def method_missing(m,*a,&block)
-      if block
-        # If there are no arguments with the block, evaluate the block
-        # in the local context
-        if a.empty?
-          (a[0].class == self.class) ? a[0].instance_eval(&block) : super
-        else
-          # If there are arguments, then we are operating on an argument that
-          # takes a block, so let's store the instance and run the block on the instance
-          inst = a[0]
-          inst.instance_eval(&block)
-          dsl_options[m] = inst
-          add_method(m)
-        end
-      else        
-        if a.empty?
-          if m.to_s.include?("?")
-            can_i_reach?(m)
-          else
-            fetch(m)
-          end
-        else
-          clean_meth = m.to_s.gsub(/\=/,"").to_sym
-          val = a.size > 1 ? a : a[0]
-          store(clean_meth, val, &block)
-        end
+    def __dsl_fetch(m)
+      o = dsl_options[m]
+      case o
+      when Proc
+        instance_eval &o
+      else
+        o
       end
     end
-    
-    def add_method(meth)
-      self.class.class_eval <<-EOM
-        def #{meth}(n=nil)
-          if n
-            dsl_options[:#{meth}] = n
-          else
-            o = dsl_options[:#{meth}]            
-            o = instance_eval(&o) if o.is_a?(Proc)
-            o
-          end
-        end
-        def #{meth}=(n)
-          dsl_options[:#{meth}] = n
-        end
-        def #{meth}?
-          ![nil, false].include?(#{meth})
-        end
-      EOM
+    def set_vars_from_options(hsh={})
+      hsh.each {|k,v| dsl_option(k,v)}
     end
     
-    # Get the value from the dsl_options or the forwarders
-    def fetch(m)
-      if respond_to?(:dsl_options) && dsl_options.has_key?(m)
-        add_method(m)
-        return self.send(m)
+    def method_missing(m,*a,&block)      
+      if m.to_s.include?("?")
+        dsl_options.has_key?(m.to_s.gsub(/\?/, '').to_sym)
       else
         dsl_forwarders.each do |fwd|
-          fwd = self.send(fwd) if fwd.is_a?(Symbol)  
-          if fwd.has_key?(m)
-            o = fwd.fetch(m)              
-            add_method(m)
-            o = o.call if o.is_a?(Proc)
-            return o
+          if fwd.respond_to?(m)
+            return fwd.send(m,*a,&block)
           end
         end
-      end
-      raise NoMethodError
-    end
-
-    # Set the value
-    # If I can handle the method, then handle the method here first
-    # otherwise, check to see if the chain can handle the method.
-    # If the chain can handle the method, then create the method on
-    # self and get the output
-    def store(m, *a, &block)
-      if dsl_options.has_key?(m)
-        m = m.to_sym
-        val = a.size > 1 ? a : a[0]
-        dsl_options[m] = val
-      else
-        raise NoMethodError
+        super
       end
     end
-    
-    def can_i_reach?(m)
-      begin
-        fetch(m.to_s.gsub(/\?/, '').to_sym)
-        true
-      rescue Exception => e
-        false
-      end
-    end
-    
   end
   
   def self.included(receiver)
+    receiver.extend         Forwardable
     receiver.extend         ClassMethods
     receiver.send :include, InstanceMethods
   end

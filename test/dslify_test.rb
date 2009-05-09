@@ -40,16 +40,9 @@ class QuickieTest < Test::Unit::TestCase
       assert_equal @q.b, "b"
     end
     it "should set methods even when they are called with a block" do
-      @q.bobs Quickie.new do
+      @q.author Quickie.new do
       end
-      assert_equal @q.bobs.class, Quickie
-    end
-    it "should set the methods on the inner block" do
-      @q.bobs Quickie.new do
-        dsl_option :franks
-        franks "franke"
-      end
-      assert_equal @q.bobs.franks, "franke"
+      assert_equal @q.author.class, Quickie
     end
     it "should not blow up when called with a ? at the end of the method" do
       @q.set_vars_from_options({:pete => "and pete"})
@@ -95,6 +88,9 @@ class QuickieTest < Test::Unit::TestCase
       class Pop
         include Dslify
         default_options :name => "pop"
+        def initialize(o={})
+          set_vars_from_options(o)
+        end
       end
       
       class Foo < Pop
