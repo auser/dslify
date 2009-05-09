@@ -64,9 +64,9 @@ module Dslify
     end
     def create_method_on(on, k)
       str = %{
-        def #{k}(n=nil);n.nil? ? __dsl_fetch(:#{k}) : dsl_options[:#{k}] = n;end
-        def #{k}=(n=nil);n.nil? ? __dsl_fetch(:#{k}) : dsl_options[:#{k}] = n;end
-        def self.#{k}(n=nil);n.nil? ? __dsl_fetch(:#{k}) : default_options[:#{k}] = n;end
+        def #{k}(n=nil);n.nil? ? __dsl_fetch(:"#{k}") : dsl_options[:"#{k}"] = n;end
+        def #{k}=(n=nil);n.nil? ? __dsl_fetch(:"#{k}") : dsl_options[:"#{k}"] = n;end
+        def self.#{k}(n=nil);n.nil? ? __dsl_fetch(:"#{k}") : default_options[:"#{k}"] = n;end
         def #{k}?;dsl_options.has_key?(:#{k});end
         }
       on.class_eval str
@@ -86,6 +86,7 @@ module Dslify
     def dsl_options
       @dsl_options ||= self.class.default_options
     end
+    alias :options :dsl_options
     def dsl_option(k,v=nil)
       self.class.dsl_option(k,v)
     end
@@ -105,7 +106,13 @@ module Dslify
       end
     end
     def set_vars_from_options(hsh={})
-      hsh.each {|k,v| dsl_option(k,v)}
+      hsh.each do |k,v|
+        if self.respond_to?(k)
+          self.send k, v
+        elsif
+          dsl_option(k,v)
+        end
+      end
     end
     
     def method_missing(m,*a,&block)      
