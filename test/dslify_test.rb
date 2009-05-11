@@ -11,7 +11,7 @@ class QuickieTest < Test::Unit::TestCase
   context "setting" do
     before do
       Quickie.class_eval do
-        dsl_methods :bank, :snobs, :author
+        dsl_methods :bank, :snobs, :author, :gilligans_island
       end
       @q = Quickie.new
     end
@@ -54,8 +54,8 @@ class QuickieTest < Test::Unit::TestCase
       assert_equal @q.bobs?, false
     end
     it "should return true if the option is set" do
-      @q.bank "is a tv show"
-      assert_equal @q.bank?, true
+      @q.gilligans_island "is a tv show"
+      assert @q.gilligans_island?
     end
   end
   

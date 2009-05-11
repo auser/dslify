@@ -28,8 +28,6 @@
     forwards_to :parent
   end
 =end
-require "forwardable"
-
 class Object
   def self.superclasses
     superclass == Object ? [] : [superclass, superclass.superclasses].flatten
@@ -47,54 +45,33 @@ module Dslify
     def dsl_methods(*arr)
       arr.each {|a| default_options({a => nil}) }
     end
-    def forwards_to(consts=[])
-      (dsl_forwarders << consts).flatten
-    end
-    def dsl_forwarders
-      @dsl_forwarders ||= []
-    end
-    def dsl_option(k,v=nil)
-      create_method_on(self, k)
-      default_options.merge!({k => v})
-    end
-    def inherited(receiver)
-      default_options.each{|k,v| create_method_on(receiver, k)}
-      receiver.default_options.merge!(default_options)
-      (receiver.dsl_forwarders << dsl_forwarders).flatten!
-    end
     def create_method_on(on, k)
       str = %{
-        def #{k}(n=nil);n.nil? ? __dsl_fetch(:"#{k}") : dsl_options[:"#{k}"] = n;end
-        def #{k}=(n=nil);n.nil? ? __dsl_fetch(:"#{k}") : dsl_options[:"#{k}"] = n;end
-        def self.#{k}(n=nil);n.nil? ? __dsl_fetch(:"#{k}") : default_options[:"#{k}"] = n;end
-        def #{k}?;dsl_options.has_key?(:#{k});end
+        def #{k}(n=nil);n.nil? ? __dsl_fetch(:#{k}) : dsl_options[:#{k}] = n;end
+        def #{k}=(n=nil);n.nil? ? __dsl_fetch(:#{k}) : dsl_options[:#{k}] = n;end
+        def #{k}?;o = self.send(:#{k}); !o.nil? && o;end
         }
+        # dsl_options.has_key?(:#{k}) and !dsl_options[:#{k}].nil?
       on.class_eval str
-    end
-    def __dsl_fetch(m)
-      o = default_options[m]
-      case o
-      when Proc
-        instance_eval &o
-      else
-        o
-      end
     end
   end
   
   module InstanceMethods
-    def dsl_options
-      @dsl_options ||= self.class.default_options
+    def dsl_options(hsh=nil)
+      hsh ? __dsl_options.merge!(hsh) : __dsl_options
+    end
+    def __dsl_options(hsh={})
+      @dsl_options ||= self.class.default_options.dup
     end
     alias :options :dsl_options
+    
     def dsl_option(k,v=nil)
-      self.class.dsl_option(k,v)
+      self.class.create_method_on(self, k) unless respond_to?(k)
+      dsl_options[k.to_sym] = v
     end
+    
     def dsl_methods(*arr)
       ((@dsl_methods ||= self.class.dsl_methods) << arr).flatten
-    end
-    def dsl_forwarders
-      @dsl_forwarders ||= self.class.dsl_forwarders
     end
     def __dsl_fetch(m)
       o = dsl_options[m]
@@ -114,23 +91,17 @@ module Dslify
         end
       end
     end
-    
-    def method_missing(m,*a,&block)      
+    def method_missing(m,*a,&block)
       if m.to_s.include?("?")
-        dsl_options.has_key?(m.to_s.gsub(/\?/, '').to_sym)
+        o = (self.send m.to_s.gsub(/\?/, '').to_sym)
+        !o.nil? && o
       else
-        dsl_forwarders.each do |fwd|
-          if fwd.respond_to?(m)
-            return fwd.send(m,*a,&block)
-          end
-        end
         super
       end
     end
   end
   
   def self.included(receiver)
-    receiver.extend         Forwardable
     receiver.extend         ClassMethods
     receiver.send :include, InstanceMethods
   end
