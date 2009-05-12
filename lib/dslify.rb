@@ -19,14 +19,6 @@
     class MyClass
       default_options :award => "Tony Award"
     end
-  
-  If your tree of available accessors runs higher and longer than
-  just 1 file, for instance, if you use Parenting, you can set forwarders to 
-  forward the query up the chain
-  
-  class MyClass
-    forwards_to :parent
-  end
 =end
 class Object
   def self.superclasses
