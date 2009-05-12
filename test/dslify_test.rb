@@ -87,9 +87,13 @@ class QuickieTest < Test::Unit::TestCase
     before do
       class Pop
         include Dslify
-        default_options :name => "pop"
+        default_options :name => "pop", :flavor=>'cherry'
         def initialize(o={})
           set_vars_from_options(o)
+        end
+        
+        def real_method
+          "the real deal, no magic"
         end
       end
       
@@ -142,6 +146,7 @@ class QuickieTest < Test::Unit::TestCase
     it "should set the default options of the child to the superclass's if it doesn't exist" do
       # QuickieTest::Dad => QuickieTest::Pop
       d = Dad.new
+      assert Pop.new.name == 'pop'
       assert_equal "pop", d.name
       d.name "Frankenstein"
       assert_equal d.name, "Frankenstein"
@@ -153,15 +158,9 @@ class QuickieTest < Test::Unit::TestCase
     end
     it "should be able to reach the grandparent through the chain of dsify-ed classes" do
       # QuickieTest::Grandad => QuickieTest::Dad => QuickieTest::Pop
+      assert Dad.method_defined?(:name)
+      assert Dad.new.flavor == 'cherry'
       assert Grandad.new.name, "pop"
-    end
-    it "should be able to add a class as a forwarder" do
-      class Grandad
-        forwards_to Defaults
-      end
-      g = Grandad.new
-      # QuickieTest::Grandad => QuickieTest::Dad => QuickieTest::Defaults => QuickieTest::Dad => QuickieTest::Pop
-      assert_equal g.global_default, "red_rum"
     end
     # it "should be able to take a method that responds to an object" do
     #   class Tanks
