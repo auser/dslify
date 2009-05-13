@@ -58,6 +58,23 @@ class QuickieTest < Test::Unit::TestCase
     end
   end
   
+  context "calling methods on an instance" do
+    setup do
+      class Detective
+        include Dslify
+        attr_reader :snooped
+        def snoop(*n)
+          @snooped = "done!"
+        end
+      end
+      @d= Detective.new
+    end
+    should "Call the method snoop with set_vars_from_options" do
+      @d.set_vars_from_options(:snoop => true)
+      assert @d.snooped
+    end
+  end
+  
   context "default options" do
     setup do
       class Bang

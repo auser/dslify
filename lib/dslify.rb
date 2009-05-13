@@ -5,13 +5,16 @@ module Dslify
   end
   
   module ClassMethods    
-    def default_options(hsh)
+    def default_options(hsh={})
       (@_dsl_options ||= {}).merge! hsh
       set_default_options(@_dsl_options)
     end
     
     def dsl_options
       @_dsl_options ||= {}
+    end
+    def options
+      dsl_options
     end
     
     def dsl_methods(*syms)
@@ -38,13 +41,7 @@ module Dslify
           dsl_options[:#{k}] = n
         end
         def fetch(k)
-          o = dsl_options[k]
-          case o
-          when Proc
-            dsl_options[k] = o.call
-          else
-            o
-          end                      
+          dsl_options[k]                    
         end
       EOE
     end
@@ -58,12 +55,21 @@ module Dslify
       @dsl_options ||= self.class.dsl_options.clone
     end
     def set_vars_from_options(hsh={})
-      hsh.each {|k,v| instance_eval self.class.define_dsl_method_str(k);dsl_options[k] = v}
+      hsh.each do |k,v| 
+        instance_eval self.class.define_dsl_method_str(k) unless self.respond_to?(k)
+        self.send k, v
+      end
     end
+    
+    def set_default_options(hsh={})
+      self.class.set_default_options(hsh)
+    end
+    
     def method_missing(m,*a,&block)
-      if m.to_s =~ /\?$/
-        warn "DEPRECATED: Dslify will no longer support ? methods. Fix yo code"
-        respond_to?(m.to_s.gsub(/\?/, '').to_sym)
+      if m.to_s[-1..-1] == '?'
+        t = m.to_s.gsub(/\?/, '').to_sym
+        warn "DEPRECATED: Dslify will no longer support ? methods. Fix yo code."
+        respond_to?(t) && !self.send(t, *a, &block).nil?
       else
         super
       end
