@@ -68,7 +68,7 @@ module Dslify
     def method_missing(m,*a,&block)
       if m.to_s[-1..-1] == '?'
         t = m.to_s.gsub(/\?/, '').to_sym
-        warn "DEPRECATED: Dslify will no longer support ? methods. Fix yo code."
+        warn "DEPRECATED: Dslify will no longer support ? methods. Fix yo code.: #{m}"
         respond_to?(t) && !self.send(t, *a, &block).nil?
       else
         super
