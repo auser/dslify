@@ -5,6 +5,3 @@ require "context"
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'dslify'
-
-class Test::Unit::TestCase
-end

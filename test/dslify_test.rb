@@ -34,7 +34,6 @@ class QuickieTest < Test::Unit::TestCase
       end
     end
     it "should set multiple keys with set_vars_from_options" do
-      @q.dsl_methods :a, :b
       @q.set_vars_from_options({:a => "a", :b => "b"})
       assert_equal @q.a, "a"
       assert_equal @q.b, "b"
