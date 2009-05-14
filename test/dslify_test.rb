@@ -43,19 +43,6 @@ class QuickieTest < Test::Unit::TestCase
       end
       assert_equal @q.author.class, Quickie
     end
-    it "should not blow up when called with a ? at the end of the method" do
-      @q.set_vars_from_options({:pete => "and pete"})
-      assert_nothing_raised do
-        @q.pete?
-      end
-    end
-    it "should return false if the method exists" do
-      assert_equal @q.bobs?, false
-    end
-    it "should return true if the option is set" do
-      @q.gilligans_island "is a tv show"
-      assert @q.gilligans_island?
-    end
   end
   
   context "calling methods on an instance" do
@@ -194,4 +181,52 @@ class QuickieTest < Test::Unit::TestCase
     #   assert_equal t.taste, @bar.taste
     # end
   end
+  context "methods" do
+    setup do
+      class MrDanger
+        include Dslify
+        default_options :where_to => "The Grand Canyon"
+        def initialize(o={})
+          set_vars_from_options(o)
+        end
+        def where_to(*a)
+          "New York City"
+        end
+      end
+    end
+
+    should "not override the method where_to" do
+      assert_equal MrDanger.new.where_to, "New York City"
+    end
+    should "not override the method where_to when called with set_vars_from_options" do
+      assert_equal MrDanger.new(:where_to => "Bank of America").where_to, "New York City"
+    end
+  end
+  
+  context "when calling with a block" do
+    setup do
+      class ToddTheSquare
+        include Dslify
+        default_options :provider => :vmrun, :t => :nothing
+        
+        def provider(&block)
+          instance_eval &block if block
+        end
+      end
+    end
+    
+    should "should not evaluate the block" do
+      tts = ToddTheSquare.new
+      assert_equal tts.t, :nothing
+    end
+
+    should "should evaluate the block" do
+      tts = ToddTheSquare.new
+      tts.provider do
+        self.t = :something
+      end
+      assert_equal tts.t, :something
+    end
+  end
+  
 end
