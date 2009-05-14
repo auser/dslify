@@ -26,7 +26,9 @@ class QuickieTest < Test::Unit::TestCase
     end
     it "should set and retrieve values back with an = sign" do
       @q.author = ["Ari Lerner"]
+      @q.snobs = "Michael"
       assert_equal @q.author, ["Ari Lerner"]
+      assert_equal @q.snobs, "Michael"
     end
     it "should set these values in the h Hash on the object" do
       assert_raise NoMethodError do
