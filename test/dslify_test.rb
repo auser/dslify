@@ -229,4 +229,36 @@ class QuickieTest < Test::Unit::TestCase
     end
   end
   
+  context "set_vars_from_options" do
+    setup do
+      class VarrrrrrrrMatey
+        include Dslify
+        default_options :say => "hello", :to => "world"
+        
+        def initialize(o={}, &block)
+          set_vars_from_options(o)
+          instance_eval &block if block
+        end
+        
+        def to_s
+          say + " " + to
+        end
+      end
+    end
+
+    should "set the vars on the options with no options" do
+      assert_equal VarrrrrrrrMatey.new.to_s, "hello world"
+    end
+    should "update the options if called with options" do
+      assert_equal VarrrrrrrrMatey.new({:say => "goodbye"}).to_s, "goodbye world"
+    end
+    should "update the options if called with block" do
+      @v = VarrrrrrrrMatey.new do
+        to "me"
+      end
+      assert_equal @v.to_s, "hello me"
+    end
+  end
+  
+  
 end
