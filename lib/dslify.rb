@@ -18,17 +18,39 @@ module Dslify
     end
     
     def dsl_methods(*syms)
-      syms.each {|sym| set_default_options({sym => nil}) }
+      syms.each do |sym|
+        hsh = sym.is_a?(Hash) ? {sym[sym.keys.first] => ({:value => nil}).merge(sym)} : {sym => {:value => nil}}
+        set_default_options(hsh)
+      end
     end
     
     def set_default_options(new_options)
       new_options.each do |k,v|
-        dsl_options[k] = v
+        if k.is_a?(Hash)
+          puts "Creating: #{k.inspect} => #{v.inspect} from #{k.keys.inspect}"
+          # dsl_options[k] = v[:value]
+          define_dsl_method_str_with_validation(k,v)
+        else
+          dsl_options[k] = v
+        end
         class_eval define_dsl_method_str(k)
       end
     end
     
-    def define_dsl_method_str(k)
+    def define_dsl_method_str_with_validation(k,val)
+      class_eval <<-EOV
+        def #{k}=(n)
+          dsl_options[:#{k}] = if validation_blocks.has_key?(:#{val}) 
+              validation_blocks[#{val}].call(n)
+            else
+              val
+            end
+        end
+      EOV
+      
+    end
+    
+    def define_dsl_method_str(k, ty=nil)
       <<-EOE
         def #{k}(n=nil)
           if n.nil?
@@ -38,12 +60,20 @@ module Dslify
           end          
         end
         def #{k}=(n)
-          dsl_options[:#{k}] = n
+          dsl_options[:#{k}] = n          
         end
-        def fetch(k)
-          dsl_options[k]                    
+        def fetch(k)          
+          dsl_options[k]
         end
       EOE
+    end
+    
+    def with_type(ty, &block)
+      validation_blocks[ty] = block
+    end
+    
+    def validation_blocks
+      @validation_blocks ||= {}
     end
     
     def inherited(subclass)

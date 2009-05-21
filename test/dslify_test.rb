@@ -262,5 +262,46 @@ class QuickieTest < Test::Unit::TestCase
     end
   end
   
+  context "with types" do
+    setup do
+      class Typified
+        include Dslify
+        with_type :file do |f|
+          # stuff here for file
+          "nomenclature: #{f}"
+        end
+        with_type :string do |str|
+          "rocks: #{str}"
+        end
+        dsl_methods :credit,
+                    {:check_card => {:type => :file}}
+        
+        default_options :say => "hello", 
+                        :to => {:value => "world", :type => :string},
+                        :because => {:value => "I said so", :type => :file}
+      end
+    end
+    
+    should "not explode" do
+      assert_nothing_raised do
+        Typified.new
+      end
+    end
+    should "set the types of the the options with type as :file and those that are not set with :string" do
+      t = Typified.new
+      assert t.check_card.dsl_type == :file
+      assert t.to.dsl_type == :string
+      assert t.because.dsl_type == :file
+      assert t.credit.dsl_type == :string
+    end
+    should "be able to call the methods with an appropriate value and return the case statement" do
+      t = Typified.new      
+      assert_equal "nomenclature", t.because
+      assert_equal "rocks", t.to
+      assert_equal "nomenclature", t.check_card
+      assert_equal nil, t.credit
+    end
+  end
+  
   
 end
