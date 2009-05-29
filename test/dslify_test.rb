@@ -262,5 +262,33 @@ class QuickieTest < Test::Unit::TestCase
     end
   end
   
+  context "dsl_methods and methods on the object" do
+    setup do
+      class PluginMoopieMoop
+        include Dslify
+        default_options :stars => to_s
+        
+        def self.inherited(s)
+          # stuff
+          super
+        end
+      end
+      class DoopyDoop < PluginMoopieMoop        
+        def stars
+          "right now"
+        end
+      end
+      @obj = DoopyDoop.new
+    end
+
+    should "have the method :stars" do
+      assert @obj.respond_to?(:stars)
+    end
+    should "use the method on the instance" do
+      assert_equal @obj.stars, "right now"
+    end
+  end
+  
+  
   
 end
