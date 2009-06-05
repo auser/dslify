@@ -167,21 +167,10 @@ class QuickieTest < Test::Unit::TestCase
       assert Dad.new.flavor == 'cherry'
       assert Grandad.new.name, "pop"
     end
-    # it "should be able to take a method that responds to an object" do
-    #   class Tanks
-    #     include Dslify
-    #     forwards_to :parent
-    #     def initialize(obj)
-    #       @parent = obj
-    #     end
-    #     def parent          
-    #       @parent
-    #     end
-    #   end
-    #   t = Tanks.new(@bar)
-    #   # QuickieTest::Tanks => Object => #<QuickieTest::Bar>
-    #   assert_equal t.taste, @bar.taste
-    # end
+    it "should grab the default options from the dsl options (instance method)" do
+      d = Dad.new(:star => "bucks")
+      assert_equal d.default_options.keys.map {|k| k.to_s }.sort, %w(flavor name)
+    end
   end
   context "methods" do
     setup do

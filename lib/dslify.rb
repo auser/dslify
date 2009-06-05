@@ -54,6 +54,9 @@ module Dslify
     def dsl_options
       @dsl_options ||= self.class.dsl_options.clone
     end
+    def default_options
+      Hash[*dsl_options.select{|k,v| self.class.default_options.has_key?(k) }.inject([]){|res,(k,v)| res << k << v }]
+    end
     def set_vars_from_options(hsh={})
       hsh.each do |k,v| 
         instance_eval self.class.define_dsl_method_str(k) unless self.respond_to?(k)
